@@ -1,0 +1,21 @@
+[Unit]
+Description=PulseOps Linux Server Monitoring Agent
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/pulseops-agent
+ExecStart=/usr/bin/python3 /opt/pulseops-agent/agent.py --config /etc/pulseops/agent_config.json
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+# Hardening
+ProtectSystem=full
+ProtectHome=read-only
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

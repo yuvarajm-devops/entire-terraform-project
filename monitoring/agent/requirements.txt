@@ -1,0 +1,2 @@
+# Optional dependencies (agent includes pure-Python standard library fallbacks for zero-dependency execution)
+psutil>=5.9.0

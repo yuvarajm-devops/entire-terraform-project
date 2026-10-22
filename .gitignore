@@ -1,0 +1,36 @@
+# Ignores Terraform's downloaded providers and local working files
+.terraform/
+
+# Ignores Terraform state, which may contain sensitive infrastructure data
+*.tfstate
+*.tfstate.*
+
+# Ignores saved Terraform plans
+*.tfplan
+tfplan
+
+# Ignores local variable files that may contain environment-specific values
+terraform.tfvars
+*.auto.tfvars
+
+# Ignores environment variables and local secrets
+.env
+.env.*
+
+# Ignores private SSH keys
+*.pem
+
+# Ignores Node.js dependencies and build output
+node_modules/
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+
+# Ignores temporary installer bundles and deployment state
+app/aws/
+.current_deployment
+.previous_deployment
+
+infrastructure/terraform/entire-terraform-project/

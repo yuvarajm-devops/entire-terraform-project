@@ -1,0 +1,21 @@
+# AWS region where infrastructure will be deployed
+aws_region = "ap-south-1"
+
+# Environment tag applied to project resources
+environment = "dev"
+
+# VPC network range
+vpc_cidr = "10.20.0.0/16"
+
+# EC2 instance type (t3.medium recommended for Jenkins + Docker builds + containers)
+instance_type = "t3.medium"
+
+# Trusted IP allowed to access Jenkins (port 8080) and SSH (port 22)
+# Replace with your public IP address in CIDR format, e.g. "203.0.113.10/32"
+trusted_ip = "0.0.0.0/0"
+
+# Optional: Name of an existing AWS EC2 Key Pair for SSH access
+ssh_key_name = ""
+
+# Application host port on EC2 mapped to frontend container
+app_port = 8081

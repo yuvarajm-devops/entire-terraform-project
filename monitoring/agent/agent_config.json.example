@@ -1,0 +1,6 @@
+{
+  "backend_url": "http://your-alb-or-backend-ip:8080",
+  "agent_key": "YOUR_GENERATED_AGENT_KEY",
+  "interval": 15,
+  "heartbeat_interval": 30
+}

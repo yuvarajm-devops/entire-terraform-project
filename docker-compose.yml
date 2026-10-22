@@ -1,0 +1,89 @@
+services:
+  # 1. PostgreSQL Database (Isolated internal network, persistent data)
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulseops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-monitoring_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./app/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - internal_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-monitoring_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Node.js Express REST Backend API
+  backend:
+    image: ${BACKEND_IMAGE:-yuvarajm1810/pulseops-backend}:${IMAGE_TAG:-latest}
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: pulseops-backend
+    restart: unless-stopped
+    # Internal port only - host port 8080 is reserved for Jenkins on the EC2 host
+    expose:
+      - "8080"
+    environment:
+      PORT: 8080
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-pulseops-production-jwt-key-2026}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-monitoring_db}
+      HEARTBEAT_INTERVAL: 30
+      OFFLINE_THRESHOLD: 90
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal_net
+      - public_net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 3. React Vite Dashboard (Nginx Reverse Proxy & Static SPA Server)
+  frontend:
+    image: ${FRONTEND_IMAGE:-yuvarajm1810/pulseops-frontend}:${IMAGE_TAG:-latest}
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: pulseops-frontend
+    restart: unless-stopped
+    # Published on host port 8081 for ALB target group traffic (non-colliding with Jenkins on 8080)
+    ports:
+      - "${FRONTEND_PORT:-8081}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - public_net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  internal_net:
+    driver: bridge
+    internal: true # Enforces database isolation from external traffic
+  public_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
