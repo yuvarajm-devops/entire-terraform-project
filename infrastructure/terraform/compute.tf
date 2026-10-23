@@ -29,7 +29,7 @@ data "aws_ami" "ubuntu" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "realtime-devops-key"
-  public_key = file(pathexpand("~/.ssh/realtime-devops-key.pub"))
+  public_key = file("${path.module}/keys/realtime-devops-key.pub")
 
   tags = {
     Name        = "realtime-devops-key"
