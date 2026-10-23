@@ -14,7 +14,7 @@ services:
     networks:
       - internal_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-monitoring_db}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-monitoring_db}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,8 @@ services:
       - internal_net
       - public_net
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      # FIX: Use 127.0.0.1 because localhost fails in this container
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8080/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -62,7 +63,8 @@ services:
       dockerfile: Dockerfile
     container_name: pulseops-frontend
     restart: unless-stopped
-    # Published on host port 8081 for ALB target group traffic (non-colliding with Jenkins on 8080)
+    # Published on host port 8081 for ALB target group traffic
+    # Port 8080 remains reserved for Jenkins on the EC2 host
     ports:
       - "${FRONTEND_PORT:-8081}:80"
     depends_on:
@@ -71,7 +73,7 @@ services:
     networks:
       - public_net
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -80,7 +82,7 @@ services:
 networks:
   internal_net:
     driver: bridge
-    internal: true # Enforces database isolation from external traffic
+    internal: true # Isolates the database network from external access
   public_net:
     driver: bridge
 
