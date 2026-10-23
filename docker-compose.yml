@@ -73,7 +73,7 @@ services:
     networks:
       - public_net
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health" ]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health" ]
       interval: 15s
       timeout: 5s
       retries: 3
